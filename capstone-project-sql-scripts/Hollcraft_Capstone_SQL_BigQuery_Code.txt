@@ -1,0 +1,157 @@
+
+Write the code for a table using integrated_flight_data dataset with columns for Flight_Number, DayOfWeek, DepDelayMinutes and sort the columns by highest to lowest values in DepDelayMinutes. Convert DayOfWeek number to the word for the corresponding name for the day of the week and convert minutes listed in DepDelayMinutes column to hours and minutes values. 
+
+SELECT
+    Flight_Number_Operating_Airline AS Flight_Number,
+    CASE
+      DayOfWeek
+      WHEN 1 THEN 'Sunday'
+      WHEN 2 THEN 'Monday'
+      WHEN 3 THEN 'Tuesday'
+      WHEN 4 THEN 'Wednesday'
+      WHEN 5 THEN 'Thursday'
+      WHEN 6 THEN 'Friday'
+      WHEN 7 THEN 'Saturday'
+    END AS DayOfWeek,
+    DepDelayMinutes,
+    CONCAT(CAST(FLOOR(DepDelayMinutes / 60) AS STRING), ' hours ', CAST(MOD(CAST(DepDelayMinutes AS INT64), 60) AS STRING), ' minutes') AS DepDelayTime
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data`
+ORDER BY
+  DepDelayMinutes DESC;
+
+Write code to analyze the table DayOfWeek_to_hours_delayed dataset to display the top 100 flights with the highest departure delays. Convert minutes in DepDelayMinutes column to hours and minutes values. Once that is completed add a column with a number for how many times the Flight_Number appears in this dataset with the same departure delay within one hour of the total DepDelayMinutes.
+SELECT
+    Flight_Number,
+    DayOfWeek,
+    DepDelayMinutes,
+    DepDelayTime,
+    CAST(DepDelayMinutes / 60 AS INT64) AS DepDelayHours,
+    MOD(CAST(DepDelayMinutes AS INT64), 60) AS DepDelayMinutesRemaining,
+    count(*) OVER (PARTITION BY Flight_Number, CAST(DepDelayMinutes / 60 AS INT64)) AS DelayCount
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.DayofWeek_to_hours_delayed`
+ORDER BY
+  DepDelayMinutes DESC
+LIMIT 100;
+
+-- Write code to analyze the table DayOfWeek_to_hours_delayed dataset to display the top 100 flights with the highest departure delays. Convert minutes in DepDelayMinutes column to hours and minutes values. Once that is completed add a column with a number for how many times the Flight_Number appears in this dataset with the same departure delay within one hour of the total DepDelayMinutes.
+SELECT
+    Flight_Number,
+    DayOfWeek,
+    DepDelayMinutes,
+    DepDelayTime,
+    CAST(DepDelayMinutes / 60 AS INT64) AS DepDelayHours,
+    MOD(CAST(DepDelayMinutes AS INT64), 60) AS DepDelayMinutesRemaining,
+    count(*) OVER (PARTITION BY Flight_Number, CAST(DepDelayMinutes / 60 AS INT64)) AS DelayCount
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.DayofWeek_to_hours_delayed`
+ORDER BY
+  DepDelayMinutes DESC
+LIMIT 100;
+
+-- Write code to analyze this data set to find the top 25 dates with the highest DepDelayMinutes. Display DepDelayMinutes in hours and minutes values.
+SELECT
+    integrated_flight_data.FlightDate,
+    integrated_flight_data.DepDelayMinutes,
+    CAST(integrated_flight_data.DepDelayMinutes / 60 AS INT64) AS hours,
+    CAST(MOD(CAST(integrated_flight_data.DepDelayMinutes AS BIGNUMERIC), 60) AS INT64) AS minutes
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data
+ORDER BY
+  integrated_flight_data.DepDelayMinutes DESC
+LIMIT 25;
+
+
+SELECT
+  Month,
+  Dest,
+  COUNT(*) AS total_cancelled_flights
+FROM `flight_stream_data.integrated_flight_data`
+WHERE
+  Month IS NOT NULL AND Cancelled = 1
+GROUP BY
+  Month,
+  Dest
+ORDER BY
+  Month,
+  total_cancelled_flights DESC;
+
+SELECT
+  DayOfWeek,
+  MAX(DepDelay) AS max_dep_delay
+FROM
+  `flight_stream_data.integrated_flight_data`
+WHERE
+  FlightDate BETWEEN '2022-01-01' AND '2022-12-31'
+GROUP BY
+  DayOfWeek
+ORDER BY
+  max_dep_delay ASC;
+
+-- Generate the code to analyze the data set and complete the actions in numerical order: (1) determine the 7 airports with the shortest departure delays and list the airport name and delay in hours and minutes, (2) determine the 7 airports with the longest departure delays and list the airport name and delay in hours and minutes, (3) determine and list the days of the week with the highest to lowest departure delays, list from highest to lowest, (4) determine the 7 months with the most departure delays, list from most to least, (5) determine the 7 days of the year with the most departure delays, list from most to least.
+SELECT
+    integrated_flight_data.Origin,
+    avg(DayofWeek_to_hours_delayed.DepDelayMinutes) AS avg_delay_minutes
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data
+    INNER JOIN `direct-axiom-428510-d6.flight_stream_data.DayofWeek_to_hours_delayed` AS DayofWeek_to_hours_delayed ON integrated_flight_data.Flight_Number_Operating_Airline = DayofWeek_to_hours_delayed.Flight_Number
+  GROUP BY 1
+ORDER BY
+  avg_delay_minutes
+LIMIT 7;
+
+-- Generate the code to analyze the data set, determine the 7 airports with the shortest departure delays and list the airport names and delay in hours and minutes in two separate columns.
+SELECT
+    integrated_flight_data.Origin,
+    avg(integrated_flight_data.DepDelayMinutes) AS avg_delay_minutes,
+    avg(integrated_flight_data.DepDelay) AS avg_delay_hours
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data
+  GROUP BY 1
+ORDER BY
+  avg_delay_minutes
+LIMIT 7;
+
+-- Generate the code to analyze the data set and determine the 7 airports with the longest departure delays and list the airport name and delay in hours and minutes and display the related airport's names and the delay in two separate columns. Convert DepDelayMinutes to number of minutes divided by 60.
+SELECT
+    integrated_flight_data.Origin,
+    integrated_flight_data.DepDelayMinutes,
+     FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data
+ORDER BY
+  integrated_flight_data.DepDelayMinutes DESC
+LIMIT 7;
+
+-- Generate the code to analyze the data set and (1) determine and list the days of the week with the highest to lowest departure delays, (2) list the day of week and departure delay in two separate columns from highest to lowest.
+SELECT
+    DayofWeek_to_hours_delayed.DayOfWeek,
+    avg(integrated_flight_data.DepDelayMinutes) AS avg_delay
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.DayofWeek_to_hours_delayed` AS DayofWeek_to_hours_delayed
+    INNER JOIN `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data ON DayofWeek_to_hours_delayed.Flight_Number = integrated_flight_data.Flight_Number_Operating_Airline
+  GROUP BY 1
+ORDER BY
+  avg_delay DESC;
+
+-- Generate the code to analyze the data set and determine the 7 calendar dates of each year with the most departure delays, list from most to least. Where DayOfWeek equals a number, convert to the number to the word for that day of week. Add a column to indicate the airport which experienced the most delays on that calendar date. Convert minutes listed in DepDelayMinutes column to hours and minutes values.
+SELECT
+    integrated_flight_data.FlightDate,
+    CASE
+      WHEN integrated_flight_data.DayOfWeek = 1 THEN 'Sunday'
+      WHEN integrated_flight_data.DayOfWeek = 2 THEN 'Monday'
+      WHEN integrated_flight_data.DayOfWeek = 3 THEN 'Tuesday'
+      WHEN integrated_flight_data.DayOfWeek = 4 THEN 'Wednesday'
+
+      WHEN integrated_flight_data.DayOfWeek = 5 THEN 'Thursday'
+      WHEN integrated_flight_data.DayOfWeek = 6 THEN 'Friday'
+      WHEN integrated_flight_data.DayOfWeek = 7 THEN 'Saturday'
+    END AS DayOfWeek,
+    integrated_flight_data.Origin AS Airport,
+    sum(integrated_flight_data.DepDelayMinutes) AS TotalDelayMinutes
+  FROM
+    `direct-axiom-428510-d6.flight_stream_data.integrated_flight_data` AS integrated_flight_data
+  GROUP BY 1, 2, 3
+ORDER BY
+  sum(integrated_flight_data.DepDelayMinutes) DESC
+LIMIT 7;
