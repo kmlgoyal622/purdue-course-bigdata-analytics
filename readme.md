@@ -15,9 +15,32 @@ Determine whether there are specific times during the day where flights between 
 
 - Analyze whether particular aircrafts were consistently delayed and/or delayed for longer periods
 
-## Prediction and Model Training
-A machine learning model was trained using velocity as the target variable, with the aim of predicting when flight velocities would exceed 200 knots.
+
+## Data pre-processing and Model Training with predictions
+1. We obtained the flight data from BTS archives from the year 2018 untill 2021.
+
+2. We designed a cloud function to download the real-time streaming dataset from OpenSky API.
+
+3. We merged both the datasets for the Washington-Neward origin-destination pair and analyzed average velocities by each hour.
+
+4. Then, we built a linear regression model to predict aircraft velocities based on following features on dataset before year 2021.
+	- IATA_Code_Marketing_Airline
+	- TaxiIn
+	- TaxiOut
+	- Altitude
+	- heading
+	- vertical_rate
+	- baro_altitude
+	- ArrDelay
+
+5. We used the train model to predict over flight dataset from year 2021. We also subset the prediction data where the predicted velocities were > 200 knots.
+
 
 ## Analysis and Findings
 The analysis revealed that specific times during the day, particularly early morning and late-night flights, tend to experience lower average velocities, indicating potential inefficiencies or increased congestion during these hours.
 
+- There is less fluctuation in aircraft velocity during off-peak hours (12AM to 5AM) compared to aircrafts later in the day (based on the difference in minimum and maximum velocity by hour).
+
+- It suggests that operational performance varies significantly depending on the time of day. ​
+
+- It may potentially be the reason for the arrival delays.
